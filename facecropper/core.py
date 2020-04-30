@@ -13,47 +13,6 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
-parser = argparse.ArgumentParser(
-    description="Detect and crop faces from an image.",
-)
-parser.add_argument(
-    "image",
-    nargs="+",
-    help="path to input image",
-)
-parser.add_argument(
-    "--cascade",
-    default="haarcascades/haarcascade_frontalface_default.xml",
-    help="face detection cascade to be used by OpenCV",
-)
-parser.add_argument(
-    "-o", "--output",
-    default="{name}_{i}.png",
-    help="Output path template, evaluates placehoders: \
-        {path} -> original file path, \
-        {name} -> original file name, \
-        {ext} -> original file extension, \
-        {i} -> index of detected face",
-)
-parser.add_argument(
-    "-p", "--padding",
-    type=float,
-    default="0.3",
-    help="relative space around recognized face (> 0)",
-)
-parser.add_argument(
-    "-s", "--size",
-    type=int,
-    default="200",
-    help="maximum image resolution",
-)
-parser.add_argument(
-    "-g", "--grayscale",
-    type=bool,
-    default=True,
-    help="grayscale cropped image",
-)
-
 
 def extract_faces(img, cascade, spacing=0.0, force_square=True):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -145,6 +104,47 @@ def process_image(image_path, output_template, cascade, spaceing, size,
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Detect and crop faces from an image.",
+    )
+    parser.add_argument(
+        "image",
+        nargs="+",
+        help="path to input image",
+    )
+    parser.add_argument(
+        "--cascade",
+        default="haarcascades/haarcascade_frontalface_default.xml",
+        help="face detection cascade to be used by OpenCV",
+    )
+    parser.add_argument(
+        "-o", "--output",
+        default="{name}_{i}.png",
+        help="Output path template, evaluates placehoders: \
+            {path} -> original file path, \
+            {name} -> original file name, \
+            {ext} -> original file extension, \
+            {i} -> index of detected face",
+    )
+    parser.add_argument(
+        "-p", "--padding",
+        type=float,
+        default="0.3",
+        help="relative space around recognized face (> 0)",
+    )
+    parser.add_argument(
+        "-s", "--size",
+        type=int,
+        default="200",
+        help="maximum image resolution",
+    )
+    parser.add_argument(
+        "-g", "--grayscale",
+        type=bool,
+        default=True,
+        help="grayscale cropped image",
+    )
+
     args = parser.parse_args()
 
     logger.info(f"Loading {args.cascade}")

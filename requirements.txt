@@ -1,2 +1,3 @@
 sphinx
 opencv-python
+numpy

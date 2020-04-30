@@ -32,10 +32,11 @@ optional arguments:
   -h, --help            show this help message and exit
   --cascade CASCADE     face detection cascade to be used by OpenCV
   -o OUTPUT, --output OUTPUT
-                        Output path template, evaluates placehoders: {path} ->
-                        original file path, {name} -> original file name,
-                        {ext} -> original file extension, {i} -> index of
-                        detected face
+                        Output path template, evaluates placehoders: 
+                        {path} -> original file path, 
+                        {name} -> original file name,
+                        {ext} -> original file extension, 
+                        {i} -> index of detected face
   -p PADDING, --padding PADDING
                         relative space around recognized face (> 0)
   -s SIZE, --size SIZE  maximum image resolution

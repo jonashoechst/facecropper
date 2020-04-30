@@ -21,12 +21,12 @@ setup(
     classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: GPL-3.0 License",
-        "Programming Language :: Python :: 3.5",
+        "Operating System :: OS Independent",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    keywords="face detection crop image processing",
+    keywords="face detection crop image processing facecropper head crop-image circular circle",
     install_requires=requirements,
     zip_safe=True,
     project_urls={

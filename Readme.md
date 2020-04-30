@@ -1,7 +1,9 @@
 facecropper
 === 
 
-`facecropper?` is tool to extract faces from images.
+`facecropper` is tool to extract faces from images. It facilitates OpenCV to detect faces, grayscale and create circular images.
+
+![lenna.png processed by facecropper with default settings](lenna_0.png)
 
 ## Installation
 
@@ -72,10 +74,8 @@ haarcascade_upperbody.xml
 
 ```
 $ facecropper lenna.png 
-Loading haarcascades/haarcascade_frontalface_default.xml
+Loading /Users/hoechst/Projects/facecropper/facecropper/haarcascades/haarcascade_frontalface_default.xml
 Processing lenna.png
 Exporting lenna_0.png
 INFO:facecropper:Exporting lenna_0.png
-Done.
-INFO:facecropper:Done.
 ```

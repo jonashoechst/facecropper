@@ -3,6 +3,7 @@
 import argparse
 import logging
 import os
+import sys
 
 import numpy as np
 from cv2 import cv2
@@ -85,15 +86,18 @@ def export(img, output_path: str, size: int = 0, grayscale: bool = False):
     cv2.imwrite(output_path, img)
 
 
-def process_image(image_path, output_template, cascade, spaceing, size,
+def process_image(image_path, output_template, cascade, spacing, size,
                   grayscale):
-    logger.info(f"Processing {image_path}")
     img = cv2.imread(image_path)
+    logger.info(f"Processing {image_path}")
+
+    # extract variables for output filename generation
     path = os.path.dirname(image_path)
     name, ext = os.path.splitext(os.path.basename(image_path))
     ext = ext[1:]
 
-    faces = extract_faces(img, cascade, spacing=spaceing)
+    # extract faces by their matched bounding boxes
+    faces = extract_faces(img, cascade, spacing=spacing)
     logging.info(f"Found {len(faces)} faces")
 
     for i, face in enumerate(faces):
@@ -114,7 +118,7 @@ def main():
     )
     parser.add_argument(
         "--cascade",
-        default="haarcascades/haarcascade_frontalface_default.xml",
+        default="haarcascade_frontalface_default.xml",
         help="face detection cascade to be used by OpenCV",
     )
     parser.add_argument(
@@ -147,19 +151,27 @@ def main():
 
     args = parser.parse_args()
 
-    logger.info(f"Loading {args.cascade}")
-    cascade = cv2.CascadeClassifier(args.cascade)
+    cascade_module = os.path.join(os.path.dirname(
+        __file__), f"haarcascades/{args.cascade}")
+
+    if os.path.exists(args.cascade):
+        logger.info(f"Loading {args.cascade}")
+        cascade = cv2.CascadeClassifier(args.cascade)
+    elif os.path.exists(cascade_module):
+        logger.info(f"Loading {cascade_module}")
+        cascade = cv2.CascadeClassifier(cascade_module)
+    else:
+        logger.error(f"cascade could not be loaded, path: {cascade_module}")
+        sys.exit(1)
 
     for image_path in args.image:
         try:
             process_image(image_path=image_path,
                           output_template=args.output,
                           cascade=cascade,
-                          spaceing=args.padding,
+                          spacing=args.padding,
                           size=args.size,
                           grayscale=args.grayscale,
                           )
         except Exception as e:
             logger.warning(f"Error processing {image_path}: {e}")
-
-    logger.info("Done.")

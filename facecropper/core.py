@@ -21,7 +21,7 @@ def extract_faces(img, cascade, spacing=0.0, force_square=True):
         gray,
         scaleFactor=1.1,
         minNeighbors=5,
-        minSize=(200, 200),
+        minSize=(100, 100),
         flags=cv2.CASCADE_SCALE_IMAGE,
     )
 
@@ -82,6 +82,8 @@ def export(img, output_path: str, size: int = 0, grayscale: bool = False):
         _, _, _, alpha = cv2.split(img)
         luminescence = img_gray[0]
         img = cv2.merge((luminescence, luminescence, luminescence, alpha))
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     cv2.imwrite(output_path, img)
 

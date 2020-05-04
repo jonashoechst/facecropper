@@ -8,11 +8,8 @@ import sys
 import numpy as np
 from cv2 import cv2
 
-logger = logging.getLogger("facecropper")
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-logger.addHandler(ch)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARN)
 
 
 def extract_faces(img, cascade, spacing=0.0, force_square=True):
@@ -50,8 +47,7 @@ def extract_faces(img, cascade, spacing=0.0, force_square=True):
 def circle_mask(img, color=(255, 255, 255, 255)):
     if img.shape[0] != img.shape[1]:
         raise Exception(
-            f"Image is non-square ({img.shape[0]}x{img.shape[1]}), \
-                cannot apply circle mask.")
+            f"Image is non-square ({img.shape[0]}x{img.shape[1]}), cannot apply circle mask.")
 
     # convert to 4-channel image (including alpha)
     if img.shape[2] < 4:
@@ -155,8 +151,17 @@ def main():
         default=True,
         help="grayscale cropped image",
     )
-
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="increase verbosity (may be applied multiple times)",
+        action="count",
+        default=0
+    )
     args = parser.parse_args()
+
+    logging_level = logging.WARN - (args.verbose) * 10
+    logger.setLevel(max(0, logging_level))
 
     cascade_module = os.path.join(os.path.dirname(
         __file__), f"haarcascades/{args.cascade}")
@@ -168,7 +173,7 @@ def main():
         logger.info(f"Loading {cascade_module}")
         cascade = cv2.CascadeClassifier(cascade_module)
     else:
-        logger.error(f"cascade could not be loaded, path: {cascade_module}")
+        logger.fatal(f"cascade could not be loaded, path: {cascade_module}")
         sys.exit(1)
 
     for image_path in args.image:
@@ -181,4 +186,4 @@ def main():
                           grayscale=args.grayscale,
                           )
         except Exception as e:
-            logger.warning(f"Error processing {image_path}: {e}")
+            logger.error(f"{image_path} could not be processed: {e}")

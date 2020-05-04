@@ -42,6 +42,7 @@ optional arguments:
   -s SIZE, --size SIZE  maximum image resolution
   -g GRAYSCALE, --grayscale GRAYSCALE
                         grayscale cropped image
+  -v, --verbose         increase verbosity (may be applied multiple times)
 ```
 
 ### Cascades

@@ -8,11 +8,20 @@ import sys
 import numpy as np
 from cv2 import cv2
 
+
+console = logging.StreamHandler()
+console.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARN)
+logger.setLevel(logging.WARNING)
+logger.propagate = False
+logger.addHandler(console)
 
 
-def extract_faces(img, cascade, spacing=0.0, force_square=True):
+def extract_faces(img: np.ndarray,
+                  cascade: cv2.CascadeClassifier,
+                  spacing: float = 0.0,
+                  force_square: bool = True):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     face_boxes = cascade.detectMultiScale(
         gray,
@@ -44,7 +53,8 @@ def extract_faces(img, cascade, spacing=0.0, force_square=True):
     return faces
 
 
-def circle_mask(img, color=(255, 255, 255, 255)):
+def circle_mask(img: np.ndarray,
+                color=(255, 255, 255, 255)):
     if img.shape[0] != img.shape[1]:
         raise Exception(
             f"Image is non-square ({img.shape[0]}x{img.shape[1]}), cannot apply circle mask.")
@@ -69,7 +79,10 @@ def circle_mask(img, color=(255, 255, 255, 255)):
     return masked
 
 
-def export(img, output_path: str, size: int = 0, grayscale: bool = False):
+def export(img: np.ndarray,
+           output_path: str,
+           size: int = 0,
+           grayscale: bool = False):
     if size > 0:
         img = cv2.resize(img, (size, size), interpolation=cv2.INTER_AREA)
 
@@ -84,10 +97,15 @@ def export(img, output_path: str, size: int = 0, grayscale: bool = False):
     cv2.imwrite(output_path, img)
 
 
-def process_image(image_path, output_template, cascade, spacing, size,
-                  grayscale):
+def process_image(image_path: str,
+                  output_template: str,
+                  cascade: cv2.CascadeClassifier,
+                  spacing: float,
+                  size: int,
+                  grayscale: bool):
     img = cv2.imread(image_path)
-    logger.info(f"Processing {image_path}")
+    logger.info(
+        f"Processing {image_path}, resolution: {len(img)}x{len(img[0])}x{len(img[0][0])}")
 
     # extract variables for output filename generation
     path = os.path.dirname(image_path)
@@ -160,8 +178,9 @@ def main():
     )
     args = parser.parse_args()
 
-    logging_level = logging.WARN - (args.verbose) * 10
-    logger.setLevel(max(0, logging_level))
+    logging_level = max(10, logging.WARN - (args.verbose) * 10)
+    logger.setLevel(logging_level)
+    logger.debug(f"set logging level to {logging_level}")
 
     cascade_module = os.path.join(os.path.dirname(
         __file__), f"haarcascades/{args.cascade}")

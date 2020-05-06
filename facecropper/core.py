@@ -18,6 +18,31 @@ logger.propagate = False
 logger.addHandler(console)
 
 
+def cropfill(img: np.ndarray,
+             top: int,
+             right: int,
+             bottom: int,
+             left: int,
+             ):
+
+    dimen = (top,
+             len(img[1]) - right,
+             len(img) - bottom,
+             left,
+             )
+
+    for i, size in enumerate(dimen):
+        logger.debug(f"cropfill {i}: {size}")
+
+        if size < 0:
+            img = np.insert(img, 0, [img[0]] * -size, 0)
+        else:
+            img = img[size:]
+        img = np.rot90(img, k=1, axes=(0, 1))
+
+    return img
+
+
 def extract_faces(img: np.ndarray,
                   cascade: cv2.CascadeClassifier,
                   spacing: float = 0.0,
@@ -46,13 +71,13 @@ def extract_faces(img: np.ndarray,
                      f"{width + space_horizontal*2}x" +
                      f"{height + space_vertical*2}")
 
-        y0 = max(0, y - space_vertical)
-        y1 = min(y + height + space_vertical, len(img))
-        x0 = max(0, x - space_horizontal)
-        x1 = min(x + width + space_horizontal, len(img[0]))
+        left = x - space_horizontal
+        top = y - space_vertical
+        right = x + width + space_horizontal
+        bottom = y + height + space_vertical
 
-        # crop out face, including the calculated space
-        face = img[y0: y1, x0: x1, ]
+        # compute filling points
+        face = cropfill(img, top, right, bottom, left)
 
         faces.append(face)
 

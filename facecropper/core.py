@@ -37,16 +37,22 @@ def extract_faces(img: np.ndarray,
         # force width equal to height
         if force_square:
             width = height = max(width, height)
+        logger.info(f"detected face of size {width}x{height}")
 
         # compute additional absolute spacing
         space_horizontal = int(spacing * width)
         space_vertical = int(spacing * height)
+        logger.debug(f"face with spacing " +
+                     f"{width + space_horizontal*2}x" +
+                     f"{height + space_vertical*2}")
+
+        y0 = max(0, y - space_vertical)
+        y1 = min(y + height + space_vertical, len(img))
+        x0 = max(0, x - space_horizontal)
+        x1 = min(x + width + space_horizontal, len(img[0]))
 
         # crop out face, including the calculated space
-        face = img[
-            y-space_vertical: y+height+space_vertical,
-            x-space_horizontal: x+width+space_horizontal,
-        ]
+        face = img[y0: y1, x0: x1, ]
 
         faces.append(face)
 
@@ -57,7 +63,8 @@ def circle_mask(img: np.ndarray,
                 color=(255, 255, 255, 255)):
     if img.shape[0] != img.shape[1]:
         raise Exception(
-            f"Image is non-square ({img.shape[0]}x{img.shape[1]}), cannot apply circle mask.")
+            f"Image is non-square ({img.shape[0]}x{img.shape[1]}), " +
+            "cannot apply circle mask.")
 
     # convert to 4-channel image (including alpha)
     if img.shape[2] < 4:
@@ -92,7 +99,9 @@ def export(img: np.ndarray,
         luminescence = img_gray[0]
         img = cv2.merge((luminescence, luminescence, luminescence, alpha))
 
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    dirname = os.path.dirname(output_path)
+    if dirname:
+        os.makedirs(dirname, exist_ok=True)
 
     cv2.imwrite(output_path, img)
 
@@ -105,7 +114,7 @@ def process_image(image_path: str,
                   grayscale: bool):
     img = cv2.imread(image_path)
     logger.info(
-        f"Processing {image_path}, resolution: {len(img)}x{len(img[0])}x{len(img[0][0])}")
+        f"Processing {image_path}, resolution: {len(img)}x{len(img[0])}")
 
     # extract variables for output filename generation
     path = os.path.dirname(image_path)

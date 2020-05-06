@@ -3,7 +3,19 @@ facecropper
 
 `facecropper` is tool to extract faces from images. It facilitates OpenCV to detect faces, grayscale and create circular images.
 
+There are multiple settings, such as the padding, background color, or grayscaling:
+
 ![lenna.png processed by facecropper with default settings](docs/lenna_0.png)
+![export using the grayscale option](docs/lenna_1.png)
+![applying custom padding](docs/lenna_2.png)
+![custom background color](docs/lenna_3.png)
+
+```bash
+facecropper -v -o docs/lenna_0.png docs/lenna.png
+facecropper -v -o docs/lenna_1.png docs/lenna.png --grayscale
+facecropper -v -o docs/lenna_2.png docs/lenna.png --grayscale --padding 1.0
+facecropper -v -o docs/lenna_3.png docs/lenna.png --padding 1.0 --color "(122, 90, 50, 255)"
+```
 
 ## Installation
 
@@ -20,7 +32,7 @@ pip install .
 ```bash
 $ facecropper -h
 usage: facecropper [-h] [--cascade CASCADE] [-o OUTPUT] [-p PADDING] [-s SIZE]
-                   [-g GRAYSCALE]
+                   [-g] [-v] [-c COLOR]
                    image [image ...]
 
 Detect and crop faces from an image.
@@ -34,15 +46,16 @@ optional arguments:
   -o OUTPUT, --output OUTPUT
                         Output path template, evaluates placehoders: 
                         {path} -> original file path, 
-                        {name} -> original file name,
+                        {name} -> original file name, 
                         {ext} -> original file extension, 
                         {i} -> index of detected face
   -p PADDING, --padding PADDING
-                        relative space around recognized face (> 0)
-  -s SIZE, --size SIZE  maximum image resolution
-  -g GRAYSCALE, --grayscale GRAYSCALE
-                        grayscale cropped image
+                        relative space around recognized face (> 0), default=0.3
+  -s SIZE, --size SIZE  export image resolution height / width, default=200
+  -g, --grayscale       grayscale cropped image
   -v, --verbose         increase verbosity (may be applied multiple times)
+  -c COLOR, --color COLOR
+                        background color for circular cutout, BRG(A)-format, default: (255, 255, 255, 0)
 ```
 
 ### Cascades
@@ -74,10 +87,10 @@ haarcascade_upperbody.xml
 
 ## Example
 
-```
-$ facecropper docs/lenna.png 
-Loading /Users/hoechst/Projects/facecropper/facecropper/haarcascades/haarcascade_frontalface_default.xml
-Processing lenna.png
-Exporting lenna_0.png
-INFO:facecropper:Exporting docs/lenna_0.png
+```bash
+$ facecropper -v -o docs/lenna_3.png docs/lenna.png --padding 1.0 --color "(122, 90, 50, 255)"
+INFO: Loading /Users/hoechst/Projects/facecropper/facecropper/haarcascades/haarcascade_frontalface_default.xml
+INFO: Processing docs/lenna.png, resolution: 512x512
+INFO: detected face of size 173x173
+INFO: Exporting docs/lenna_3.png, grayscale: False
 ```

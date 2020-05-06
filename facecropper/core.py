@@ -85,16 +85,25 @@ def extract_faces(img: np.ndarray,
 
 
 def circle_mask(img: np.ndarray,
-                color=(255, 255, 255, 255)):
+                color,
+                size: int = 0,
+                antialiasing: float = 2,
+                ):
     if img.shape[0] != img.shape[1]:
         raise Exception(
             f"Image is non-square ({img.shape[0]}x{img.shape[1]}), " +
             "cannot apply circle mask.")
 
+    size = size if size > 0 else img.shape[0]
+    aa_size = int(antialiasing * size)
+
+    img = cv2.resize(img, (aa_size, aa_size))
+
     # convert to 4-channel image (including alpha)
     if img.shape[2] < 4:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
 
+    # create mask to extract face with
     mask = np.zeros(img.shape, img.dtype)
 
     cv2.circle(
@@ -102,21 +111,34 @@ def circle_mask(img: np.ndarray,
         center=(int(mask.shape[0]/2),
                 int(mask.shape[1]/2)),
         radius=int(mask.shape[0]/2),
-        color=color,
+        color=(255, 255, 255, 255),
         # thickness -1: fill inner circle
         thickness=-1,
     )
+    img = cv2.bitwise_and(img, mask)
 
-    masked = cv2.bitwise_and(img, mask)
-    return masked
+    # create background and cut out circle
+    background = np.full(img.shape, color, img.dtype)
+    cv2.circle(
+        img=background,
+        center=(int(img.shape[0]/2),
+                int(img.shape[1]/2)),
+        radius=int(img.shape[0]/2),
+        color=(0, 0, 0),
+        thickness=-1,
+    )
+
+    # add background to face
+    img = cv2.add(img, background)
+    img = cv2.resize(img, (size, size))
+
+    return img
 
 
 def export(img: np.ndarray,
            output_path: str,
-           size: int = 0,
-           grayscale: bool = False):
-    if size > 0:
-        img = cv2.resize(img, (size, size), interpolation=cv2.INTER_AREA)
+           grayscale: bool,
+           ):
 
     if grayscale:
         img_gray = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
@@ -129,32 +151,6 @@ def export(img: np.ndarray,
         os.makedirs(dirname, exist_ok=True)
 
     cv2.imwrite(output_path, img)
-
-
-def process_image(image_path: str,
-                  output_template: str,
-                  cascade: cv2.CascadeClassifier,
-                  spacing: float,
-                  size: int,
-                  grayscale: bool):
-    img = cv2.imread(image_path)
-    logger.info(
-        f"Processing {image_path}, resolution: {len(img)}x{len(img[0])}")
-
-    # extract variables for output filename generation
-    path = os.path.dirname(image_path)
-    name, ext = os.path.splitext(os.path.basename(image_path))
-    ext = ext[1:]
-
-    # extract faces by their matched bounding boxes
-    faces = extract_faces(img, cascade, spacing=spacing)
-    logging.info(f"Found {len(faces)} faces")
-
-    for i, face in enumerate(faces):
-        masked = circle_mask(face)
-        output_path = output_template.format(**locals())
-        logger.info(f"Exporting {output_path}")
-        export(masked, output_path, size, grayscale)
 
 
 def main():
@@ -189,18 +185,19 @@ def main():
         "-p", "--padding",
         type=float,
         default="0.3",
-        help="relative space around recognized face (> 0)",
+        help="relative space around recognized face (> 0), default=0.3",
     )
     parser.add_argument(
         "-s", "--size",
         type=int,
         default="200",
-        help="maximum image resolution",
+        help="export image resolution height / width, default=200",
     )
+    parser.set_defaults(grayscale=False)
     parser.add_argument(
         "-g", "--grayscale",
-        type=bool,
-        default=True,
+        dest="grayscale",
+        action="store_true",
         help="grayscale cropped image",
     )
     parser.add_argument(
@@ -209,6 +206,14 @@ def main():
         help="increase verbosity (may be applied multiple times)",
         action="count",
         default=0
+    )
+    parser.add_argument(
+        "-c",
+        "--color",
+        default=(255, 255, 255, 0),
+        type=eval,
+        help="background color for circular cutout, " +
+        "BRG(A)-format, default: (255, 255, 255, 0)"
     )
     args = parser.parse_args()
 
@@ -230,13 +235,28 @@ def main():
         sys.exit(1)
 
     for image_path in args.image:
-        try:
-            process_image(image_path=image_path,
-                          output_template=args.output,
-                          cascade=cascade,
-                          spacing=args.padding,
-                          size=args.size,
-                          grayscale=args.grayscale,
-                          )
-        except Exception as e:
-            logger.error(f"{image_path} could not be processed: {e}")
+        img = cv2.imread(image_path)
+        logger.info(f"Processing {image_path}, " +
+                    f"resolution: {len(img)}x{len(img[0])}")
+
+        # extract variables for output filename generation
+        output_opts = {}
+        output_opts["path"] = os.path.dirname(image_path)
+        output_opts["name"], ext = os.path.splitext(
+            os.path.basename(image_path))
+        output_opts["ext"] = ext[1:]
+
+        # extract faces by their matched bounding boxes
+        faces = extract_faces(img, cascade, spacing=args.padding)
+        logging.info(f"Found {len(faces)} faces")
+
+        for i, face in enumerate(faces):
+            masked = circle_mask(face, args.color, args.size)
+
+            # format output path
+            output_opts["i"] = i
+            output_path = args.output.format(**output_opts)
+            logger.info(
+                f"Exporting {output_path}, grayscale: {args.grayscale}")
+
+            export(masked, output_path, args.grayscale)

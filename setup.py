@@ -18,6 +18,7 @@ setup(
     url="https://github.com/hoechst/facecropper",
     license="GPL-3.0",
     packages=find_packages(exclude=('tests', 'docs')),
+    data_files=[('haarcascades', ['facecropper/haarcascades/haarcascade_frontalface_default.xml'])],
     classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: GPL-3.0 License",
@@ -28,6 +29,7 @@ setup(
     ],
     keywords="face detection crop image processing facecropper head crop-image circular circle",
     install_requires=requirements,
+    include_package_data=True,
     zip_safe=True,
     project_urls={
         "Bug Reports": "https://github.com/jonashoechst/facecropper/issues",

@@ -1,0 +1,30 @@
+[project]
+name = "facecropper"
+version = "0.1.1"
+description = "Detect and crop faces from images"
+keywords = ["face detection", "facecropper", "opencv"]
+authors = [
+    {name = "Jonas Höchst", email = "git@jonashoechst.de"},
+]
+dependencies = [
+    "sphinx==7.4.7",
+    "opencv-python==4.5.5.64",
+    "numpy<2",
+]
+requires-python = "==3.9.*"
+readme = "README.md"
+license = {text = "GPL-3.0"}
+
+[project.urls]
+"Bug Reports" = "https://github.com/jonashoechst/facecropper/issues"
+"Homepage" = "https://github.com/jonashoechst/facecropper/"
+"Source" = "https://github.com/jonashoechst/facecropper/"
+
+[tool.pdm]
+distribution = true
+
+[tool.setuptools.package-data]
+mypkg = ["*.xml", ]
+
+[project.scripts]
+facecropper = "facecropper.core:main"

@@ -1,6 +1,6 @@
 [project]
 name = "facecropper"
-version = "0.1.1"
+version = "0.1.2"
 description = "Detect and crop faces from images"
 keywords = ["face detection", "facecropper", "opencv"]
 authors = [
@@ -8,7 +8,7 @@ authors = [
 ]
 dependencies = [
     "sphinx==7.4.7",
-    "opencv-python==4.5.5.64",
+    "opencv-python==4.8.1.78",
     "numpy<2",
 ]
 requires-python = "==3.9.*"
